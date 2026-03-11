@@ -36,11 +36,7 @@ function nettoyerTexte(string $valeur): string
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = $_POST["action"] ?? "";
 
-    /*
-        =========================
-        INSCRIPTION
-        =========================
-    */
+   
     if ($action === "register") {
         $mode = "register";
 

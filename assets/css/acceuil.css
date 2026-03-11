@@ -1,0 +1,57 @@
+/* APERÇU LUDOTHÈQUE - CARTES */
+
+.game-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:24px;
+}
+
+.game-card{
+    background:white;
+    border-radius:18px;
+    padding:24px;
+    text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    transition:0.3s;
+}
+
+.game-card:hover{
+    transform:translateY(-5px);
+}
+
+/* conteneur image */
+
+.game-image{
+    width:120px;
+    height:120px;
+    margin:0 auto 18px;
+    border-radius:18px;
+    background:#eef8f8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+/* image */
+
+.game-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* titre */
+
+.game-card h3{
+    color:#1b1f57;
+    margin-bottom:8px;
+    font-size:18px;
+}
+
+/* texte */
+
+.game-card p{
+    color:#6d6e7d;
+    font-size:14px;
+}

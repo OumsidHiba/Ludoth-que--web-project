@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/session.php";
+
 $currentPage = basename($_SERVER['PHP_SELF']);
 
 /*
@@ -16,6 +17,39 @@ $basePath = $isAdminPage ? '../' : '';
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>La Ludothèque</title>
 <link rel="stylesheet" href="<?= $basePath ?>assets/css/style.css">
+
+<?php if ($currentPage === 'index.php'): ?>
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/accueil.css">
+<?php endif; ?>
+
+<?php if ($currentPage === 'evenement.php'): ?>
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/evenement.css">
+<?php endif; ?>
+
+<?php if ($currentPage === 'ludotheque.php'): ?>
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/ludotheque.css">
+<?php endif; ?>
+
+<?php if ($currentPage === 'jeu-detail.php'): ?>
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/jeu-detail.css">
+<?php endif; ?>
+
+<?php if ($currentPage === 'events-detail.php'): ?>
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/events-detail.css">
+<?php endif; ?>
+
+<?php if ($currentPage === 'demande-emprunt.php'): ?>
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/demande-emprunt.css">
+<?php endif; ?>
+
+<?php if ($currentPage === 'demande-location.php'): ?>
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/demande-location.css">
+<?php endif; ?>
+
+<?php if ($currentPage === 'demande-reservation.php'): ?>
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/demande-reservation.css">
+<?php endif; ?>
+
 </head>
 <body>
 
@@ -31,8 +65,8 @@ class="<?= ($currentPage == 'index.php') ? 'active' : '' ?>">
 Accueil
 </a>
 
-<a href="<?= $basePath ?>evenements.php"
-class="<?= ($currentPage == 'evenements.php') ? 'active' : '' ?>">
+<a href="<?= $basePath ?>evenement.php"
+class="<?= ($currentPage == 'evenement.php') ? 'active' : '' ?>">
 Événements
 </a>
 
@@ -51,9 +85,9 @@ class="<?= ($currentPage == 'contact.php') ? 'active' : '' ?>">
 Contact
 </a>
 
-<?php if(isset($_SESSION["user_id"])): ?>
+<?php if (isset($_SESSION["user_id"])): ?>
 
-    <?php if($_SESSION["role"] === "admin" || $_SESSION["role"] === "president"): ?>
+    <?php if ($_SESSION["role"] === "admin" || $_SESSION["role"] === "president"): ?>
         <a href="<?= $basePath ?>admin/dashboard.php"
         class="<?= in_array($currentPage, ['dashboard.php', 'jeux.php', 'evenements.php', 'demandes.php', 'bureau.php']) ? 'active' : '' ?>">
         Admin

@@ -29,7 +29,8 @@ $formData = [
     "difficulte_jeu" => "",
     "statut" => "en stock",
     "regles" => "",
-    "description" => ""
+    "description" => "",
+    "image" => ""
 ];
 
 /*
@@ -71,6 +72,44 @@ if (isset($_GET["delete"])) {
 }
 
 /*
+    Fonction upload image
+*/
+function handleImageUpload(): string|false {
+    if (empty($_FILES["image"]["name"])) {
+        return false; // pas de fichier envoyé
+    }
+
+    $file = $_FILES["image"];
+
+    if ($file["error"] !== UPLOAD_ERR_OK) {
+        throw new Exception("Erreur lors de l'upload de l'image.");
+    }
+
+    $allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_file($finfo, $file["tmp_name"]);
+    finfo_close($finfo);
+
+    if (!in_array($mimeType, $allowedTypes)) {
+        throw new Exception("Format d'image non autorisé. Utilisez JPG, PNG, WEBP ou GIF.");
+    }
+
+    if ($file["size"] > 2 * 1024 * 1024) {
+        throw new Exception("L'image ne doit pas dépasser 2 Mo.");
+    }
+
+    $ext = pathinfo($file["name"], PATHINFO_EXTENSION);
+    $nomFichier = uniqid("jeu_") . "." . strtolower($ext);
+    $destination = "../assets/img/" . $nomFichier;
+
+    if (!move_uploaded_file($file["tmp_name"], $destination)) {
+        throw new Exception("Impossible de sauvegarder l'image.");
+    }
+
+    return $nomFichier;
+}
+
+/*
     Ajout / modification
 */
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -85,6 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $formData["statut"] = trim($_POST["statut"] ?? "en stock");
     $formData["regles"] = trim($_POST["regles"] ?? "");
     $formData["description"] = trim($_POST["description"] ?? "");
+    $formData["image"] = trim($_POST["image_actuelle"] ?? "");
 
     if (
         $formData["nom"] === "" ||
@@ -117,19 +157,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $messageType = "error";
     } else {
         try {
+            // Gestion de l'image
+            $nouvelleImage = handleImageUpload();
+            if ($nouvelleImage !== false) {
+                $formData["image"] = $nouvelleImage;
+            }
+
             if ($action === "add") {
                 $stmt = $pdo->prepare("
                     INSERT INTO jeu (
-                        nom,
-                        temps_jeu_moyen,
-                        nb_joueurs_min,
-                        nb_joueurs_max,
-                        difficulte_apprentissage,
-                        difficulte_jeu,
-                        statut,
-                        regles,
-                        description
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        nom, temps_jeu_moyen, nb_joueurs_min, nb_joueurs_max,
+                        difficulte_apprentissage, difficulte_jeu, statut,
+                        regles, description, image
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->execute([
                     $formData["nom"],
@@ -140,22 +180,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     (int)$formData["difficulte_jeu"],
                     $formData["statut"],
                     $formData["regles"],
-                    $formData["description"]
+                    $formData["description"],
+                    $formData["image"]
                 ]);
 
                 $message = "Le jeu a bien été ajouté.";
                 $messageType = "success";
 
                 $formData = [
-                    "nom" => "",
-                    "temps_jeu_moyen" => "",
-                    "nb_joueurs_min" => "",
-                    "nb_joueurs_max" => "",
-                    "difficulte_apprentissage" => "",
-                    "difficulte_jeu" => "",
-                    "statut" => "en stock",
-                    "regles" => "",
-                    "description" => ""
+                    "nom" => "", "temps_jeu_moyen" => "", "nb_joueurs_min" => "",
+                    "nb_joueurs_max" => "", "difficulte_apprentissage" => "",
+                    "difficulte_jeu" => "", "statut" => "en stock",
+                    "regles" => "", "description" => "", "image" => ""
                 ];
             }
 
@@ -168,16 +204,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $stmt = $pdo->prepare("
                     UPDATE jeu
-                    SET
-                        nom = ?,
-                        temps_jeu_moyen = ?,
-                        nb_joueurs_min = ?,
-                        nb_joueurs_max = ?,
-                        difficulte_apprentissage = ?,
-                        difficulte_jeu = ?,
-                        statut = ?,
-                        regles = ?,
-                        description = ?
+                    SET nom = ?, temps_jeu_moyen = ?, nb_joueurs_min = ?,
+                        nb_joueurs_max = ?, difficulte_apprentissage = ?,
+                        difficulte_jeu = ?, statut = ?, regles = ?,
+                        description = ?, image = ?
                     WHERE id_jeu = ?
                 ");
                 $stmt->execute([
@@ -190,6 +220,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $formData["statut"],
                     $formData["regles"],
                     $formData["description"],
+                    $formData["image"],
                     $idJeu
                 ]);
 
@@ -200,15 +231,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $jeuEdit = null;
 
                 $formData = [
-                    "nom" => "",
-                    "temps_jeu_moyen" => "",
-                    "nb_joueurs_min" => "",
-                    "nb_joueurs_max" => "",
-                    "difficulte_apprentissage" => "",
-                    "difficulte_jeu" => "",
-                    "statut" => "en stock",
-                    "regles" => "",
-                    "description" => ""
+                    "nom" => "", "temps_jeu_moyen" => "", "nb_joueurs_min" => "",
+                    "nb_joueurs_max" => "", "difficulte_apprentissage" => "",
+                    "difficulte_jeu" => "", "statut" => "en stock",
+                    "regles" => "", "description" => "", "image" => ""
                 ];
             }
         } catch (Exception $e) {
@@ -247,10 +273,12 @@ include "../includes/header.php";
         <section class="admin-form-card">
             <h2><?= $modeForm === "edit" ? "Modifier un jeu" : "Ajouter un jeu" ?></h2>
 
-            <form method="POST" class="admin-jeu-form">
+            <!-- enctype obligatoire pour l'upload -->
+            <form method="POST" enctype="multipart/form-data" class="admin-jeu-form">
                 <input type="hidden" name="action" value="<?= $modeForm ?>">
                 <?php if ($modeForm === "edit" && !empty($jeuEdit["id_jeu"])): ?>
                     <input type="hidden" name="id_jeu" value="<?= (int)$jeuEdit["id_jeu"] ?>">
+                    <input type="hidden" name="image_actuelle" value="<?= htmlspecialchars($formData["image"] ?? "") ?>">
                 <?php endif; ?>
 
                 <div class="admin-form-grid">
@@ -311,6 +339,25 @@ include "../includes/header.php";
                             <?php endforeach; ?>
                         </select>
                     </div>
+
+                    <!-- Champ image -->
+                    <div class="form-group">
+                        <label class="form-label">Image du jeu</label>
+                        <?php if (!empty($formData["image"])): ?>
+                            <div style="margin-bottom: 10px;">
+                                <img src="../assets/img/<?= htmlspecialchars($formData["image"]) ?>"
+                                     alt="Image actuelle"
+                                     style="height: 80px; border-radius: 10px; object-fit: cover;">
+                                <span style="display:block; font-size:12px; color:#7a7f96; margin-top:4px;">
+                                    Image actuelle — uploadez-en une nouvelle pour la remplacer
+                                </span>
+                            </div>
+                        <?php endif; ?>
+                        <input type="file" name="image" class="form-input" accept="image/jpeg,image/png,image/webp,image/gif">
+                        <span style="display:block; font-size:12px; color:#7a7f96; margin-top:6px;">
+                            JPG, PNG, WEBP ou GIF — 2 Mo max
+                        </span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -340,12 +387,24 @@ include "../includes/header.php";
                 <?php foreach ($jeux as $jeu): ?>
                     <article class="admin-demande-card">
                         <div class="admin-demande-top">
-                            <div>
-                                <h2><?= htmlspecialchars($jeu["nom"]) ?></h2>
-                                <p class="admin-demande-user">
-                                    <?= htmlspecialchars($jeu["nb_joueurs_min"]) ?> à <?= htmlspecialchars($jeu["nb_joueurs_max"]) ?> joueurs
-                                    — <?= htmlspecialchars($jeu["temps_jeu_moyen"]) ?> min
-                                </p>
+                            <div style="display:flex; align-items:center; gap:16px;">
+                                <!-- Miniature image -->
+                                <div style="width:60px; height:60px; border-radius:10px; overflow:hidden; background:#eef8f8; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:28px;">
+                                    <?php if (!empty($jeu["image"])): ?>
+                                        <img src="../assets/img/<?= htmlspecialchars($jeu["image"]) ?>"
+                                             alt="<?= htmlspecialchars($jeu["nom"]) ?>"
+                                             style="width:100%; height:100%; object-fit:cover;">
+                                    <?php else: ?>
+                                        🎲
+                                    <?php endif; ?>
+                                </div>
+                                <div>
+                                    <h2><?= htmlspecialchars($jeu["nom"]) ?></h2>
+                                    <p class="admin-demande-user">
+                                        <?= htmlspecialchars($jeu["nb_joueurs_min"]) ?> à <?= htmlspecialchars($jeu["nb_joueurs_max"]) ?> joueurs
+                                        — <?= htmlspecialchars($jeu["temps_jeu_moyen"]) ?> min
+                                    </p>
+                                </div>
                             </div>
 
                             <span class="request-status request-status-default">
