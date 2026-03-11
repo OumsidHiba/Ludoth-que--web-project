@@ -38,33 +38,41 @@ include "includes/header.php";
             </div>
 
             <div class="about-mission-grid">
-                <div class="about-card">
-                    <div class="about-icon">🎲</div>
-                    <h3>Partager</h3>
-                    <p>
-                        Faire découvrir des jeux variés à tous les profils,
-                        des débutants aux passionnés.
-                    </p>
-                </div>
 
-                <div class="about-card">
-                    <div class="about-icon">🤝</div>
-                    <h3>Rassembler</h3>
-                    <p>
-                        Créer des moments d’échange et de convivialité
-                        entre les étudiants du campus.
-                    </p>
+            <div class="about-card">
+                <div class="about-icon">
+                    <img src="assets/img/icons/partager.png" alt="Partager">
                 </div>
-
-                <div class="about-card">
-                    <div class="about-icon">✨</div>
-                    <h3>Animer</h3>
-                    <p>
-                        Proposer des événements réguliers qui dynamisent
-                        la vie associative et étudiante.
-                    </p>
-                </div>
+                <h3>Partager</h3>
+                <p>
+                    Faire découvrir des jeux variés à tous les profils,
+                    des débutants aux passionnés.
+                </p>
             </div>
+
+            <div class="about-card">
+                <div class="about-icon">
+                    <img src="assets/img/icons/rassembler.png" alt="Rassembler">
+                </div>
+                <h3>Rassembler</h3>
+                <p>
+                    Créer des moments d’échange et de convivialité
+                    entre les étudiants du campus.
+                </p>
+            </div>
+
+            <div class="about-card">
+                <div class="about-icon">
+                    <img src="assets/img/icons/animer.png" alt="Animer">
+                </div>
+                <h3>Animer</h3>
+                <p>
+                    Proposer des événements réguliers qui dynamisent
+                    la vie associative et étudiante.
+                </p>
+            </div>
+
+</div>  
         </section>
 
         <section class="about-section">

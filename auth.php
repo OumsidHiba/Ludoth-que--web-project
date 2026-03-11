@@ -2,89 +2,167 @@
 require_once "config/db.php";
 require_once "includes/session.php";
 
+/*
+    Empêche un utilisateur déjà connecté
+    d'accéder à la page de connexion/inscription
+*/
+if (isset($_SESSION["user_id"])) {
+    header("Location: compte.php");
+    exit;
+}
+
 $mode = $_GET["mode"] ?? "login";
+$mode = ($mode === "register") ? "register" : "login";
+
 $message = "";
 $messageType = "";
+
+/*
+    Valeurs conservées après erreur
+*/
+$registerNom = "";
+$registerPrenom = "";
+$registerEmail = "";
+$loginEmail = "";
+
+/*
+    Fonction utilitaire
+*/
+function nettoyerTexte(string $valeur): string
+{
+    return trim(preg_replace('/\s+/', ' ', $valeur));
+}
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = $_POST["action"] ?? "";
 
+    /*
+        =========================
+        INSCRIPTION
+        =========================
+    */
     if ($action === "register") {
-        $nom = trim($_POST["nom"] ?? "");
-        $prenom = trim($_POST["prenom"] ?? "");
-        $email = trim($_POST["email"] ?? "");
+        $mode = "register";
+
+        $registerNom = nettoyerTexte($_POST["nom"] ?? "");
+        $registerPrenom = nettoyerTexte($_POST["prenom"] ?? "");
+        $registerEmail = strtolower(trim($_POST["email"] ?? ""));
         $mot_de_passe = $_POST["mot_de_passe"] ?? "";
         $confirmation = $_POST["confirmation"] ?? "";
 
-        if (empty($nom) || empty($prenom) || empty($email) || empty($mot_de_passe) || empty($confirmation)) {
+        if (
+            empty($registerNom) ||
+            empty($registerPrenom) ||
+            empty($registerEmail) ||
+            empty($mot_de_passe) ||
+            empty($confirmation)
+        ) {
             $message = "Tous les champs sont obligatoires.";
             $messageType = "error";
-            $mode = "register";
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        } elseif (!filter_var($registerEmail, FILTER_VALIDATE_EMAIL)) {
             $message = "Adresse e-mail invalide.";
             $messageType = "error";
-            $mode = "register";
+        } elseif (strlen($registerNom) < 2 || strlen($registerNom) > 50) {
+            $message = "Le nom doit contenir entre 2 et 50 caractères.";
+            $messageType = "error";
+        } elseif (strlen($registerPrenom) < 2 || strlen($registerPrenom) > 50) {
+            $message = "Le prénom doit contenir entre 2 et 50 caractères.";
+            $messageType = "error";
+        } elseif (!preg_match("/^[\p{L}\s\-']+$/u", $registerNom)) {
+            $message = "Le nom contient des caractères non autorisés.";
+            $messageType = "error";
+        } elseif (!preg_match("/^[\p{L}\s\-']+$/u", $registerPrenom)) {
+            $message = "Le prénom contient des caractères non autorisés.";
+            $messageType = "error";
         } elseif ($mot_de_passe !== $confirmation) {
             $message = "Les mots de passe ne correspondent pas.";
             $messageType = "error";
-            $mode = "register";
-        } elseif (strlen($mot_de_passe) < 6) {
-            $message = "Le mot de passe doit contenir au moins 6 caractères.";
+        } elseif (strlen($mot_de_passe) < 8) {
+            $message = "Le mot de passe doit contenir au moins 8 caractères.";
             $messageType = "error";
-            $mode = "register";
+        } elseif (!preg_match('/[A-Z]/', $mot_de_passe)) {
+            $message = "Le mot de passe doit contenir au moins une majuscule.";
+            $messageType = "error";
+        } elseif (!preg_match('/[a-z]/', $mot_de_passe)) {
+            $message = "Le mot de passe doit contenir au moins une minuscule.";
+            $messageType = "error";
+        } elseif (!preg_match('/[0-9]/', $mot_de_passe)) {
+            $message = "Le mot de passe doit contenir au moins un chiffre.";
+            $messageType = "error";
         } else {
-            $stmt = $pdo->prepare("SELECT id_utilisateur FROM utilisateur WHERE email = ?");
-            $stmt->execute([$email]);
+            try {
+                $stmt = $pdo->prepare("SELECT id_utilisateur FROM utilisateur WHERE email = ?");
+                $stmt->execute([$registerEmail]);
 
-            if ($stmt->fetch()) {
-                $message = "Cet e-mail est déjà utilisé.";
+                if ($stmt->fetch()) {
+                    $message = "Cet e-mail est déjà utilisé.";
+                    $messageType = "error";
+                } else {
+                    $hash = password_hash($mot_de_passe, PASSWORD_DEFAULT);
+
+                    $stmt = $pdo->prepare("
+                        INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, statut_membre, role, date_inscription)
+                        VALUES (?, ?, ?, ?, 0, 'utilisateur', NOW())
+                    ");
+                    $stmt->execute([$registerNom, $registerPrenom, $registerEmail, $hash]);
+
+                    $message = "Inscription réussie. Vous pouvez maintenant vous connecter.";
+                    $messageType = "success";
+                    $mode = "login";
+
+                    $registerNom = "";
+                    $registerPrenom = "";
+                    $registerEmail = "";
+                }
+            } catch (PDOException $e) {
+                $message = "Une erreur est survenue lors de l'inscription. Veuillez réessayer.";
                 $messageType = "error";
-                $mode = "register";
-            } else {
-                $hash = password_hash($mot_de_passe, PASSWORD_DEFAULT);
-
-                $stmt = $pdo->prepare("
-                    INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, statut_membre, role)
-                    VALUES (?, ?, ?, ?, 0, 'utilisateur')
-                ");
-                $stmt->execute([$nom, $prenom, $email, $hash]);
-
-                $message = "Inscription réussie. Vous pouvez maintenant vous connecter.";
-                $messageType = "success";
-                $mode = "login";
             }
         }
     }
 
+    /*
+        =========================
+        CONNEXION
+        =========================
+    */
     if ($action === "login") {
-        $email = trim($_POST["email"] ?? "");
+        $mode = "login";
+
+        $loginEmail = strtolower(trim($_POST["email"] ?? ""));
         $mot_de_passe = $_POST["mot_de_passe"] ?? "";
 
-        if (empty($email) || empty($mot_de_passe)) {
+        if (empty($loginEmail) || empty($mot_de_passe)) {
             $message = "Veuillez remplir tous les champs.";
             $messageType = "error";
-            $mode = "login";
+        } elseif (!filter_var($loginEmail, FILTER_VALIDATE_EMAIL)) {
+            $message = "Adresse e-mail invalide.";
+            $messageType = "error";
         } else {
-            $stmt = $pdo->prepare("SELECT * FROM utilisateur WHERE email = ?");
-            $stmt->execute([$email]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM utilisateur WHERE email = ?");
+                $stmt->execute([$loginEmail]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($user && password_verify($mot_de_passe, $user["mot_de_passe"])) {
-                session_regenerate_id(true);
+                if ($user && password_verify($mot_de_passe, $user["mot_de_passe"])) {
+                    session_regenerate_id(true);
 
-                $_SESSION["user_id"] = $user["id_utilisateur"];
-                $_SESSION["nom"] = $user["nom"];
-                $_SESSION["prenom"] = $user["prenom"];
-                $_SESSION["email"] = $user["email"];
-                $_SESSION["role"] = $user["role"];
-                $_SESSION["statut_membre"] = $user["statut_membre"];
+                    $_SESSION["user_id"] = $user["id_utilisateur"];
+                    $_SESSION["nom"] = $user["nom"];
+                    $_SESSION["prenom"] = $user["prenom"];
+                    $_SESSION["email"] = $user["email"];
+                    $_SESSION["role"] = $user["role"];
+                    $_SESSION["statut_membre"] = $user["statut_membre"];
 
-                header("Location: compte.php");
-                exit;
-            } else {
-                $message = "E-mail ou mot de passe incorrect.";
+                    header("Location: compte.php");
+                    exit;
+                } else {
+                    $message = "E-mail ou mot de passe incorrect.";
+                    $messageType = "error";
+                }
+            } catch (PDOException $e) {
+                $message = "Une erreur est survenue lors de la connexion. Veuillez réessayer.";
                 $messageType = "error";
-                $mode = "login";
             }
         }
     }
@@ -115,24 +193,27 @@ include "includes/header.php";
                             Connectez-vous pour accéder à votre espace personnel.
                         </p>
 
-                        <form method="POST">
+                        <form method="POST" novalidate>
                             <input type="hidden" name="action" value="login">
 
                             <div class="form-group">
-                                <label class="form-label">Adresse e-mail</label>
+                                <label class="form-label" for="login_email">Adresse e-mail</label>
                                 <input
                                     type="email"
+                                    id="login_email"
                                     name="email"
                                     class="form-input"
                                     placeholder="votre.email@ece.fr"
+                                    value="<?= htmlspecialchars($loginEmail) ?>"
                                     required
                                 >
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Mot de passe</label>
+                                <label class="form-label" for="login_password">Mot de passe</label>
                                 <input
                                     type="password"
+                                    id="login_password"
                                     name="mot_de_passe"
                                     class="form-input"
                                     placeholder="••••••••"
@@ -142,7 +223,7 @@ include "includes/header.php";
 
                             <div class="auth-options">
                                 <label class="remember-label">
-                                    <input type="checkbox" name="remember">
+                                    <input type="checkbox" name="remember" disabled>
                                     Se souvenir de moi
                                 </label>
                                 <a href="#" class="auth-link">Mot de passe oublié ?</a>
@@ -163,59 +244,72 @@ include "includes/header.php";
                             Créez votre compte pour profiter de tous les services.
                         </p>
 
-                        <form method="POST">
+                        <form method="POST" novalidate>
                             <input type="hidden" name="action" value="register">
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label class="form-label">Nom</label>
+                                    <label class="form-label" for="register_nom">Nom</label>
                                     <input
                                         type="text"
+                                        id="register_nom"
                                         name="nom"
                                         class="form-input"
                                         placeholder="Votre nom"
+                                        value="<?= htmlspecialchars($registerNom) ?>"
+                                        maxlength="50"
                                         required
                                     >
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label">Prénom</label>
+                                    <label class="form-label" for="register_prenom">Prénom</label>
                                     <input
                                         type="text"
+                                        id="register_prenom"
                                         name="prenom"
                                         class="form-input"
                                         placeholder="Votre prénom"
+                                        value="<?= htmlspecialchars($registerPrenom) ?>"
+                                        maxlength="50"
                                         required
                                     >
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Adresse e-mail</label>
+                                <label class="form-label" for="register_email">Adresse e-mail</label>
                                 <input
                                     type="email"
+                                    id="register_email"
                                     name="email"
                                     class="form-input"
                                     placeholder="votre.email@ece.fr"
+                                    value="<?= htmlspecialchars($registerEmail) ?>"
                                     required
                                 >
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Mot de passe</label>
+                                <label class="form-label" for="register_password">Mot de passe</label>
                                 <input
                                     type="password"
+                                    id="register_password"
                                     name="mot_de_passe"
                                     class="form-input"
                                     placeholder="••••••••"
                                     required
                                 >
+                                <small class="auth-helper-text">
+                                    8 caractères minimum, avec une majuscule, une minuscule et un chiffre.
+                                </small>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Confirmer le mot de passe</label>
+                                <label class="form-label" for="register_confirmation">Confirmer le mot de passe</label>
                                 <input
                                     type="password"
+                                    id="register_confirmation"
                                     name="confirmation"
                                     class="form-input"
                                     placeholder="••••••••"
@@ -245,34 +339,53 @@ include "includes/header.php";
             </div>
 
             <div class="auth-info-side">
-                <h2 class="auth-info-title">🎲 Ludothèque</h2>
-                <p class="auth-info-text">
-                    Accédez à notre collection de jeux, empruntez ou louez vos jeux préférés,
-                    et participez à nos événements.
-                </p>
+                <div class="auth-info-badge">Association étudiante</div>
 
-                <div class="auth-feature-list">
-                    <div class="auth-feature-item">
-                        <div class="auth-feature-icon">📦</div>
+                <div class="auth-info-header">
+                    <div class="auth-brand-icon">
+                        <img src="assets/img/auth/dice.png" alt="Ludothèque">
+                    </div>
+
+                    <div>
+                        <h2 class="auth-info-title">Ludothèque</h2>
+                        <p class="auth-info-subtitle">
+                            Un espace simple pour découvrir, emprunter, louer et suivre vos activités en ligne.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="auth-info-visual">
+                    <img src="assets/img/auth/board-games.png" alt="Jeux de société">
+                </div>
+
+                <div class="auth-feature-list auth-feature-list-modern">
+                    <div class="auth-feature-card">
+                        <div class="auth-feature-icon">
+                            <img src="assets/img/auth/box.png" alt="Emprunts et locations">
+                        </div>
                         <div>
                             <div class="auth-feature-title">Emprunts & Locations</div>
-                            <div class="auth-feature-desc">Réservez vos jeux en quelques clics</div>
+                            <div class="auth-feature-desc">Accédez aux jeux disponibles selon votre statut.</div>
                         </div>
                     </div>
 
-                    <div class="auth-feature-item">
-                        <div class="auth-feature-icon">📅</div>
+                    <div class="auth-feature-card">
+                        <div class="auth-feature-icon">
+                            <img src="assets/img/auth/calendar.png" alt="Événements">
+                        </div>
                         <div>
                             <div class="auth-feature-title">Événements</div>
-                            <div class="auth-feature-desc">Jeu du jeudi, soirées jeux et plus</div>
+                            <div class="auth-feature-desc">Retrouvez le Jeu du jeudi, les soirées jeux et les animations.</div>
                         </div>
                     </div>
 
-                    <div class="auth-feature-item">
-                        <div class="auth-feature-icon">👤</div>
+                    <div class="auth-feature-card">
+                        <div class="auth-feature-icon">
+                            <img src="assets/img/auth/user-space.png" alt="Espace personnel">
+                        </div>
                         <div>
                             <div class="auth-feature-title">Espace personnel</div>
-                            <div class="auth-feature-desc">Suivez vos demandes en temps réel</div>
+                            <div class="auth-feature-desc">Suivez vos demandes et consultez votre historique en temps réel.</div>
                         </div>
                     </div>
                 </div>
