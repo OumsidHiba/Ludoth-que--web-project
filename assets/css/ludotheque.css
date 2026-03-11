@@ -1,0 +1,17 @@
+.game-card-image{
+    width:160px;
+    height:160px;
+    background:#f5f5f5;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
+.game-card-image img{
+    max-width:90%;
+    max-height:90%;
+    object-fit:contain;
+}

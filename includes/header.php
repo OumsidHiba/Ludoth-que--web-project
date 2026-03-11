@@ -9,6 +9,10 @@ require_once __DIR__ . "/session.php";
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>La Ludothèque</title>
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/jeu-detail.css">
+<link rel="stylesheet" href="assets/css/evenement.css">
+<link rel="stylesheet" href="assets/css/ludotheque.css">  
+<link rel="stylesheet" href="assets/css/acceuil.css"> 
 </head>
 <body>
 
@@ -20,9 +24,9 @@ require_once __DIR__ . "/session.php";
 <div class="nav-links">
 
 <a href="index.php">Accueil</a>
-<a href="evenements.php">Événements</a>
+<a href="evenement.php">Événements</a>
 <a href="ludotheque.php">Ludothèque</a>
-<a href="a-propos.php">À propos</a>
+<a href="apropos.php">À propos</a>
 <a href="contact.php">Contact</a>
 
 <?php if(isset($_SESSION["user_id"])): ?>

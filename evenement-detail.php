@@ -1,30 +1,12 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ludothèque — Tournoi de Catan</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <nav class="navbar">
-    <a href="index.html" class="navbar-logo">Ludo<span>thèque</span></a>
-    <button class="navbar-toggle" onclick="document.querySelector('.navbar-links').classList.toggle('open')"><span></span><span></span><span></span></button>
-    <div class="navbar-links">
-      <a href="index.html">Accueil</a>
-      <a href="evenements.html" class="active">Événements</a>
-      <a href="ludotheque.html">Ludothèque</a>
-      <a href="apropos.html">À propos</a>
-      <a href="contact.html">Contact</a>
-      <a href="connexion.html" class="cta">Connexion</a>
-    </div>
-  </nav>
-
+<?php
+include "includes/header.php";  
+?>
+<main>
   <section class="section">
     <a href="evenements.html" style="font-size:13px;color:var(--teal);font-weight:600;display:inline-block;margin-bottom:20px">← Retour aux événements</a>
     <div class="detail-grid">
       <div>
-        <div class="detail-img-main" style="height:320px">🎲</div>
+        <div class="detail-img-main" id="event-emoji">🎲</div>
       </div>
       <div class="detail-info">
         <div>
@@ -48,9 +30,8 @@
     </div>
   </section>
 
-  <footer class="footer">
-    <div>© 2026 Ludothèque — Association étudiante ECE Paris</div>
-    <div class="footer-links"><a href="apropos.html">À propos</a><a href="contact.html">Contact</a></div>
-  </footer>
-</body>
-</html>
+</main>
+<?php
+include "includes/footer.php";
+?>
+

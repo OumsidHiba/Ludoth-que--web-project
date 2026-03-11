@@ -1,7 +1,6 @@
 <?php
 include "includes/header.php";
 ?>
-
 <main>
     <!-- HERO -->
     <section class="hero">
@@ -12,7 +11,7 @@ include "includes/header.php";
                 et rejoignez notre communauté étudiante passionnée de jeux !
             </p>
             <a href="ludotheque.php" class="btn btn-primary">Découvrir les jeux</a>
-            <a href="evenements.php" class="btn btn-outline hero-second-btn">Voir les événements</a>
+            <a href="evenement.php" class="btn btn-outline hero-second-btn">Voir les événements</a>
         </div>
     </section>
 
@@ -73,7 +72,9 @@ include "includes/header.php";
 
             <div class="grid grid-4">
                 <div class="card">
-                    <div class="card-img-placeholder">🏠</div>
+                    <div class="card-img-placeholder">
+                        <img src="assets/img/Salles.jpeg" alt="">
+                    </div>
                     <div class="card-body">
                         <span class="badge badge-teal">Salle du jeudi</span>
                         <h3 class="card-title card-title-space">Salle ouverte</h3>
@@ -86,7 +87,10 @@ include "includes/header.php";
                 </div>
 
                 <div class="card">
-                    <div class="card-img-placeholder">🎲</div>
+                    <div class="card-img-placeholder">
+                        <img src="assets/img/catan.jpg" alt="">
+
+                    </div>
                     <div class="card-body">
                         <span class="badge badge-blue">Jeu du jeudi</span>
                         <h3 class="card-title card-title-space">Tournoi de Catan</h3>
@@ -99,7 +103,10 @@ include "includes/header.php";
                 </div>
 
                 <div class="card">
-                    <div class="card-img-placeholder">🌙</div>
+                    <div class="card-img-placeholder">
+                        <img src="assets/img/Soire_loup_garou.jpeg" alt="">
+
+                    </div>
                     <div class="card-body">
                         <span class="badge badge-green">Soirée jeux</span>
                         <h3 class="card-title card-title-space">Soirée Loup-Garou</h3>
@@ -112,7 +119,10 @@ include "includes/header.php";
                 </div>
 
                 <div class="card">
-                    <div class="card-img-placeholder">⭐</div>
+                    <div class="card-img-placeholder">
+                        <img src="assets/img/Escape_game_nuit.jpeg" alt="">
+
+                    </div>
                     <div class="card-body">
                         <span class="badge badge-purple">Occasionnel</span>
                         <h3 class="card-title card-title-space">Escape Game géant</h3>
@@ -139,25 +149,33 @@ include "includes/header.php";
 
         <div class="game-grid">
             <div class="game-card">
-                <div class="game-image">♟️</div>
+                <div class="game-image">
+                    <img src="assets/img/stratégique.jpeg" alt="">
+                </div>
                 <h3>Jeu stratégique</h3>
                 <p>2 à 4 joueurs • 45 min</p>
             </div>
 
             <div class="game-card">
-                <div class="game-image">🎴</div>
+                <div class="game-image">
+                    <img src="assets/img/ambiance.jpeg" alt="">
+                </div>
                 <h3>Jeu d’ambiance</h3>
                 <p>4 à 8 joueurs • 20 min</p>
             </div>
 
             <div class="game-card">
-                <div class="game-image">🧩</div>
+                <div class="game-image">
+                    <img src="assets/img/cooperatif.jpeg" alt="">
+                </div>
                 <h3>Jeu coopératif</h3>
                 <p>2 à 6 joueurs • 60 min</p>
             </div>
 
             <div class="game-card">
-                <div class="game-image">🎲</div>
+                <div class="game-image">
+                    <img src="assets/img/Famille_.jpeg" alt="">
+                </div>
                 <h3>Classique familial</h3>
                 <p>2 à 5 joueurs • 30 min</p>
             </div>

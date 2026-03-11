@@ -1,25 +1,7 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ludothèque — Contact</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <nav class="navbar">
-    <a href="index.html" class="navbar-logo">Ludo<span>thèque</span></a>
-    <button class="navbar-toggle" onclick="document.querySelector('.navbar-links').classList.toggle('open')"><span></span><span></span><span></span></button>
-    <div class="navbar-links">
-      <a href="index.html">Accueil</a>
-      <a href="evenements.html">Événements</a>
-      <a href="ludotheque.html">Ludothèque</a>
-      <a href="apropos.html">À propos</a>
-      <a href="contact.html" class="active">Contact</a>
-      <a href="connexion.html" class="cta">Connexion</a>
-    </div>
-  </nav>
-
+<?php
+include "includes/header.php";
+?>
+<main>
   <section class="section">
     <div class="section-divider"></div>
     <h2 class="section-title">Contactez-nous</h2>
@@ -94,9 +76,8 @@
     </div>
   </section>
 
-  <footer class="footer">
-    <div>© 2026 Ludothèque — Association étudiante ECE Paris</div>
-    <div class="footer-links"><a href="apropos.html">À propos</a><a href="connexion.html">Connexion</a></div>
-  </footer>
-</body>
-</html>
+</main>
+<?php
+include "includes/footer.php";    
+?>
+

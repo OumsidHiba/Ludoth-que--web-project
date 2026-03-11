@@ -51,6 +51,7 @@ $jeux = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include "includes/header.php";
 ?>
 
+<script src="assets/js/jeux-detail.js"></script>
 <main class="ludo-page">
     <div class="container">
 
@@ -124,6 +125,7 @@ include "includes/header.php";
                 <div class="filter-actions">
                     <button type="submit" class="btn-main">Filtrer</button>
                     <a href="ludotheque.php" class="btn-secondary">Réinitialiser</a>
+                    
                 </div>
             </form>
         </section>
@@ -134,7 +136,13 @@ include "includes/header.php";
                     <?php foreach ($jeux as $jeu): ?>
                         <article class="game-card-full">
                             <div class="game-card-image">
-                                🎲
+                                <?php if (!empty($jeu["image"])): 
+                                    ?>
+                                    <img src="assets/img/<?= htmlspecialchars($jeu["image"]) ?>" 
+                                        alt="<?= htmlspecialchars($jeu["nom"]) ?>">
+                                <?php else: ?>
+                                    🎲
+                                <?php endif; ?>
                             </div>
 
                             <div class="game-card-content">
@@ -196,23 +204,150 @@ include "includes/header.php";
                                 </div>
 
                                 <div class="game-actions">
-                                    <a href="#" class="btn-secondary">Voir la fiche</a>
+                                    <?php
+                                        $estConnecte = isset($_SESSION["user_id"]);
+                                        $estMembre = !empty($_SESSION["statut_membre"]);
+                                        $jeuDisponible = ($statut === "en stock");
+                                    ?>
 
-                                    <?php if (!isset($_SESSION["user_id"])): ?>
+                                    <?php if (!$estConnecte): ?>
                                         <a href="auth.php?mode=login" class="btn-main">Se connecter</a>
 
+                                        <p class="action-info">
+                                            Connectez-vous pour louer ou emprunter ce jeu.<br>
+                                            La réservation est réservée aux membres.
+                                        </p>
+
+                                        <button class="btn-disabled" disabled>Location / Emprunt</button>
+                                        <button class="btn-disabled" disabled>Réserver</button>
+
                                     <?php else: ?>
-                                        <?php if ($statut === "en stock"): ?>
-                                            <?php if (!empty($_SESSION["statut_membre"])): ?>
-                                                <a href="#" class="btn-main">Demander un emprunt</a>
+                                        <?php if ($jeuDisponible): ?>
+                                            <?php if ($estMembre): ?>
+                                                <a href="demande-emprunt.php?id=<?= $jeu['id_jeu'] ?>" class="btn-main">Demander un emprunt</a>
                                             <?php else: ?>
-                                                <a href="#" class="btn-main">Demander une location</a>
+                                                <a href="demande-location.php?id=<?= $jeu['id_jeu'] ?>" class="btn-main">Demander une location</a>
                                             <?php endif; ?>
                                         <?php else: ?>
                                             <button class="btn-disabled" disabled>Indisponible actuellement</button>
                                         <?php endif; ?>
+
+                                        <?php if ($estMembre): ?>
+                                            <a href="reservation.php?id=<?= $jeu['id_jeu'] ?>" class="btn-secondary">Réserver</a>
+                                        <?php else: ?>
+                                            <button class="btn-disabled" disabled>Réservation réservée aux membres</button>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
+
+                                <div class="game-detail-panel" id="detail-<?= $jeu['id_jeu'] ?>" hidden>
+
+                                    <div class="game-detail-inner">
+
+                                        <div class="game-detail-header">
+
+                                            <h4>Fiche complète</h4>
+
+                                        <div class="game-rating">
+
+                                        <?php
+                                            $note = (float)$jeu["note_moyenne"];
+                                            $full = floor($note);
+                                            $empty = 5-$full;
+                                        ?>
+
+                                        <span class="stars">
+                                            <?= str_repeat("★",$full) ?>
+                                            <?= str_repeat("☆",$empty) ?>
+                                        </span>
+
+                                        <span class="rating-value">
+                                            <?= number_format($note,1) ?>/5
+                                        </span>
+
+                                    </div>
+                                </div>
+
+                                <div class="detail-section">
+                                    <h5>But du jeu</h5>
+                                    <p><?= nl2br(htmlspecialchars($jeu["but_jeu"])) ?></p>
+                                </div>
+
+                                <div class="detail-section">
+                                    <h5>Présentation</h5>
+                                    <p><?= nl2br(htmlspecialchars($jeu["descriptif_detaille"])) ?></p>
+                                </div>
+
+                                <div class="detail-info-grid">
+
+                                    <div class="detail-info-card">
+                                        <span class="detail-info-label">Joueurs</span>
+                                        <span class="detail-info-value">
+                                <?= $jeu["nb_joueurs_min"] ?> à <?= $jeu["nb_joueurs_max"] ?>
+                                </span>
+                                </div>
+
+                                <div class="detail-info-card">
+                                <span class="detail-info-label">Temps</span>
+                                <span class="detail-info-value">
+                                <?= $jeu["temps_jeu_moyen"] ?> min
+                                </span>
+                                </div>
+
+                                <div class="detail-info-card">
+                                <span class="detail-info-label">Apprentissage</span>
+                                <span class="detail-info-value">
+                                <?= $jeu["difficulte_apprentissage"] ?>/5
+                                </span>
+                                </div>
+
+                                <div class="detail-info-card">
+                                <span class="detail-info-label">Difficulté</span>
+                                <span class="detail-info-value">
+                                <?= $jeu["difficulte_jeu"] ?>/5
+                                </span>
+                                </div>
+
+                                </div>
+
+                                <div class="detail-section">
+
+                                <h5>Contenu de la boîte</h5>
+
+                                <div class="box-content">
+
+                                <?php
+                                $contenu = explode("\n",$jeu["contenu_boite"]);
+                                foreach($contenu as $item):
+                                ?>
+
+                                <div class="box-item">
+                                • <?= htmlspecialchars($item) ?>
+                                </div>
+
+                                <?php endforeach; ?>
+
+                                </div>
+
+                                </div>
+
+                                <div class="detail-section">
+
+                                <h5>Vidéo explicative</h5>
+
+                                <div class="video-wrapper">
+                                <iframe
+                                src="<?= htmlspecialchars($jeu["video_url"]) ?>"
+                                frameborder="0"
+                                allowfullscreen>
+                                </iframe>
+                                </div>
+
+                                </div>
+
+                                </div>
+                                </div>
+                                
                             </div>
                         </article>
                     <?php endforeach; ?>
